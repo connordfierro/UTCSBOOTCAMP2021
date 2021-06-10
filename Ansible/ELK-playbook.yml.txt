@@ -1,0 +1,52 @@
+﻿---
+- name: Config ELK VM with Docker
+  hosts: 10.2.0.4
+  remote_user: sysadmin
+  become: true
+  tasks:
+  - name: use extra memory
+    sysctl:
+      name: vm.max_map_count
+      value: '262144'
+      state: present
+      reload: yes
+
+
+  - name: install docker.io
+    apt:
+      force_apt_get: yes
+      update_cache: yes
+      name: docker.io
+      state: present
+
+
+  - name: install python3-pip
+    apt:
+      force_apt_get: yes
+      name: python3-pip
+      state: present
+
+
+  - name: install docker(DockerPyPip module)
+    pip:
+      name: docker
+      state: present
+
+
+  - name: downloadandlaunch docker ELK container
+    docker_container:
+      name: elk
+      image: sebp/elk:761
+      state: started
+      restart_policy: always
+      published_ports:
+        - 5601:5601
+        - 9200:9200
+        - 5044:5044
+
+
+  - name: enable docker service
+    systemd:
+      name: docker
+      enabled: yes
+---
